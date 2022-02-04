@@ -1,5 +1,5 @@
 #This code extends the Chalfin-McCrary dataset on 
-#effect of police on crime elasticity to 2018(9). The 
+#effect of police on crime elasticity to 2019. The 
 #key explanatory variable is police employment, which has
 #two measures: UCR and ASG. We begin by extending the
 #UCR dataset.
@@ -72,6 +72,7 @@ setwd("C:/Users/hp/Dropbox/JAE Replication Data/My replication/ASG/ASPEP 2011-19
 
 temp=list.files(pattern="*.csv")
 myfiles=lapply(temp, read.csv, header=FALSE,numerals=c("no.loss"))
+
 #All the csvs are now stored as a list in myfiles. Next,
 #using a function, we extract only the police employment 
 #data, name the columns, and drop irrelevant variables.
