@@ -11,7 +11,7 @@ The main purpose of the code is to implement the decomposition of India's mercha
 
 ## Text Analysis.R
 
-Using four sample texts written by four classical economists - David Ricardo, Adam Smith, Karl Marx and John Stuart Mill, I use three techniques of text analysis
+Using four sample texts written by four classical economists - David Ricardo, Adam Smith, Karl Marx and John Stuart Mill, I use two techniques of text analysis
 namely, tf-idf and topic modelling to identify common themes across their works. The code extracts the raw book files, cleans them, implements the two techniques,
 and visualizes the output.
 
