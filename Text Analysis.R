@@ -1,9 +1,10 @@
-### R code from vignette source 'Final.Rnw'
+#This code uses tf-idf and topic modelling to identify 
+#common themes among four important texts written by
+#classical economists. The code extracts the raw text
+#from project Gutenberg, does the analysis and
+#visualizes the results.
 
-###################################################
-### code chunk number 1: Final.Rnw:58-70
-###################################################
-#Downloading the packages
+#Uploading the packages
 
 library(gutenbergr)
 library(tidytext)
@@ -17,31 +18,25 @@ library(forcats)
 library(topicmodels)
 
 
-###################################################
-### code chunk number 2: Final.Rnw:76-82
-###################################################
-#Corpus of economics books
+#From the package gutenbergr, I first download the four
+#texts namely, An Inquiry into the Nature and Causes of the Wealth of Nations by Adam
+#Smith, A Contribution to the Critique of Political Economy by Karl Marx,  
+#On the Principles of Political Economy and Taxation by David Ricardo, and
+#Principles of Political Economy by John Stuart Mill.
 
 classics<-gutenberg_download(c(3300,30107,33310, 46423),
                              mirror=
                 "http://eremita.di.uminho.pt/gutenberg/",
                              meta_fields = "author")
 
+#We check the texts if the adhere to 
+#Zipf's Law, a power law principle
 
-###################################################
-### code chunk number 3: Final.Rnw:93-99
-###################################################
-
-#Zipf's Law
-#calculating frequency
+#calculating frequency of each word, sorted by author
 bookwords <- classics %>%
   unnest_tokens(word, text) %>%
   count(author, word, sort = TRUE)
 
-
-###################################################
-### code chunk number 4: Final.Rnw:103-108
-###################################################
 total_words <- bookwords %>% 
   group_by(author) %>% 
   summarize(total = sum(n))
@@ -49,10 +44,8 @@ total_words <- bookwords %>%
 bookwords <- left_join(bookwords, total_words)
 
 
-###################################################
-### code chunk number 5: Final.Rnw:112-119
-###################################################
-#Calculating rank
+
+#Calculating rank and term frequency.
 
 freq_by_rank <- bookwords %>% 
   group_by(author) %>% 
@@ -61,9 +54,6 @@ freq_by_rank <- bookwords %>%
   ungroup()
 
 
-###################################################
-### code chunk number 6: Final.Rnw:124-135
-###################################################
 
 #Plotting Zipf's Law
 
@@ -77,9 +67,6 @@ freq_by_rank %>%
   theme( plot.caption = element_text(hjust = 0))
 
 
-###################################################
-### code chunk number 7: Final.Rnw:143-153
-###################################################
 #Getting tf-idf and setting authors as factors
 tf_idf_econ <- classics %>%
   unnest_tokens(word,text)%>%
@@ -91,11 +78,8 @@ tf_idf_econ <- classics %>%
                                             "Marx, Karl")))
 
 
-
-###################################################
-### code chunk number 8: Final.Rnw:158-178
-###################################################
-#Cleaning up df by removing stopwords
+#Cleaning up df by removing stopwords. Stopwords are unimportant words which
+#dont convey useful info. I remove these from the corpus.
 mystopwords <- tibble(word= c("2", "4", "100", "1000",
                                "8", "10", "720","1883", 
                                "1878", "1873", "1880",
@@ -117,9 +101,6 @@ econ_cleaned<-anti_join(tf_idf_econ, mystopwords,
                          by="word")
 
 
-###################################################
-### code chunk number 9: Final.Rnw:182-194
-###################################################
 #Plotting 15 most important terms for each author
 econ_cleaned %>% 
   group_by(author) %>% 
@@ -133,10 +114,7 @@ econ_cleaned %>%
   labs(caption="Figure 2: Top 15 words by tf-idf")+
   theme( plot.caption = element_text(hjust = 0))
 
-
-###################################################
-### code chunk number 10: Final.Rnw:205-211
-###################################################
+#Removing stop words
 data("stop_words")
 
 classic_words <- classics %>%
@@ -145,9 +123,6 @@ classic_words <- classics %>%
   count(author, word, sort = TRUE)
 
 
-###################################################
-### code chunk number 11: Final.Rnw:216-222
-###################################################
 #Setting authors as factors
 classic_words%>%
   mutate(author = factor(author, levels = c("Smith, Adam",
@@ -156,16 +131,11 @@ classic_words%>%
                                             "Marx, Karl")))
 
 
-###################################################
-### code chunk number 12: Final.Rnw:227-228
-###################################################
+
 dtm<-classic_words%>% cast_dtm(author, word, n)
 
 
-###################################################
-### code chunk number 13: Final.Rnw:235-242
-###################################################
-#Implementing the LDA
+#Implementing the LDA. This is an algorithm key to topic modelling.
 
 classic_lda<-LDA(dtm, k=4, control=set.seed(1234))
 
@@ -174,9 +144,6 @@ classic_lda<-LDA(dtm, k=4, control=set.seed(1234))
 classic_topics<-tidy(classic_lda, matrix="beta")
 
 
-###################################################
-### code chunk number 14: Final.Rnw:247-264
-###################################################
 #Plotting top 10 terms from each topic
 classic_top_terms <- classic_topics %>%
   group_by(topic) %>%
