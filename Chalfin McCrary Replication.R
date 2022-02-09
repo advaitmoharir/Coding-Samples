@@ -21,7 +21,7 @@ setwd("C:/Users/hp/Dropbox/JAE Replication Data/My replication/UCR")
 #publicly available on the website of Dr. Jacob Kaplan.
 # We use this for our replication exercise. Since the raw
 #file is too big, a partially cleaned version, consisting
-#of only the relevanr variables is used here.
+#of only the relevant variables is used here.
 
 ########## UCR DATA###############
 
@@ -66,7 +66,7 @@ ucr_final<-unique(base_merge)%>%
 setwd("C:/Users/hp/Dropbox/JAE Replication Data/My replication/ASG/ASPEP 2011-19/Police Emp and Pop/Police Employment/CSV")
 #The raw ASG files containing information for public
 #employment in all sectors has been downloaded year on year
-#from 2011. 
+#from 2011 - 2019. 
 
 #Reading csvs
 
@@ -77,7 +77,7 @@ myfiles=lapply(temp, read.csv, header=FALSE,numerals=c("no.loss"))
 #using a function, we extract only the police employment 
 #data, name the columns, and drop irrelevant variables.
 
-#Changing column names
+#Using laaply, we assign column names, and only keep the relevant columns, govid and full_time.
 
 myfiles<-lapply(myfiles, function(x){
   colnames(x)<-c("govid","type_emp","full_time","full_time_flag",
@@ -111,7 +111,7 @@ df9$year<-2019
 
 asg_extended<-do.call("rbind", list(df1, df2, df3, df4,df5,df6,df7,df8,df9))
 asg_extended$govid<-asg_extended$govid/100000#This is
-#to address a coding anomaly. 
+#to address a coding anomaly: the census site adds extra zeroes to the actual govt id. 
 
 #Now we have the extended asg dataset (2011-2019).
 #We now read in the base asg dataset (1960-2010).
@@ -191,7 +191,7 @@ pop9$year<-2019
 
 pop<-as.data.frame(do.call("rbind", list(pop1,pop2,pop3,pop4,pop5,pop6,pop7,pop8,pop9)))
 pop$govid<-as.numeric(pop$govid)
-pop$pop_asg<-as.numeric(pop$pop_asg)
+pop$pop_asg<-as.numeric(pop$pop_asg)#The txt files encoded this variables as type 'character'. We recode for the merge to be possible.
 colnames(pop)[1]<-"GOVID"
 pop$GOVID<-pop$GOVID/100000#2 NAs
 pop<-pop%>%drop_na()
@@ -204,9 +204,8 @@ pop<-pop%>%drop_na()
 #We first set pop as a panel dataframe
 
 pop_panel<-pdata.frame(pop, index=c("GOVID", "year"))
-#pop_panel$g_pop<-NA
-pop_panel$g_pop<-diff(log(pop_panel$pop_asg))
-pop<-as.data.frame(pop_panel)%>%mutate(GOVID=unfactor(GOVID), year=unfactor(year))
+pop_panel$g_pop<-diff(log(pop_panel$pop_asg)) #growth rate are calculats as log-differences.
+pop<-as.data.frame(pop_panel)%>%mutate(GOVID=unfactor(GOVID), year=unfactor(year))#We use unfactor to reset the variables as numeric
 
 #Attaching population to final
 final<-final%>%left_join(pop, by=c("GOVID", "year"))
@@ -249,13 +248,17 @@ final$cw_all<-final$cw_violent+final$cw_property
 
 #Adding asg growth rates till 2010
 #Growth rates of asg_population
-base_pop<-base%>%select(ORI7, year, Z,C2,S)
+base_pop<-base%>%select(ORI7, year, Z,C2) 
+#Z refers to growth rate of police employment (ASG), 
+#C2 refers to city pop growth rate (ASG)
 final<-final%>%left_join(base_pop, by=c("ORI7", "year"))
 
-#Now we simply shift the data from 'full_time'
+#In the full_time column, we have asg police employment in absolute terms from 2011-2018, and
+#Z has the same variable in growth terms from 1960-2010.
+#Now we simply shift the data from 'full_time' after calculating growth rates
 #into the empty 'Z' columns from 2011-2019
 
-final$Z<-ifelse(final$year>2010, Dlog(final$full_time), final$Z)
+final$Z<-ifelse(final$year>2010, Dlog(final$full_time), final$Z)#Dlog does log-diffs.
 
 
 #To generate unique identifiers for each city we generate
@@ -294,9 +297,9 @@ relevant_vars<-c("actual_murder",
 
 final_panel<-final_panel%>%
   mutate_at(relevant_vars, funs(Dlog(.)))%>%
-  filter(year!=1960)
+  filter(year!=1960)#As growth rates will lead too loss of first year, we drop it.
 
-#Completing the asg_growth series
+#Completing the asg population series (This repeats what was done with full_time and Z)
 final_panel<-final_panel%>%
   mutate(year=unfactor(year), 
          C2=ifelse(year>2010, g_pop,C2))
