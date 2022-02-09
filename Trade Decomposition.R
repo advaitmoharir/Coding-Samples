@@ -1,8 +1,7 @@
 #Below is the code for the decomposition of India's 
 #trade ratio into three components,namely,
 # terms of trade (R), relative import intensity (RMI), and 
-#relative expenditure growth (RA). For details on meaning
-#of each of these terms please refer to README.docx
+#relative expenditure growth (RA).
 
 #Setting the working directory. Please modify this as per your device
 
@@ -256,7 +255,9 @@ reindex1$switch<-log(reindex1$RMI/reindex1$RMI[1])
 reindex1<-reindex1[,-c(2:5)]
 reindex1%>%pivot_longer(2:5)%>%
   ggplot(aes(x=year,y=value, color=name ))+geom_line()+
-  scale_color_discrete(name="", labels=c("log_RA", "log_RMI", "log_R", "log_TR"))+theme(plot.caption = element_text(hjust = 0, size=12))+labs(x="",y="",caption="Figure-1:Evolution of components of India's merchandise trade ratio(1980-2018)")
+  scale_color_discrete(name="", labels=c("log_RA", "log_RMI", "log_R", "log_TR"))+
+  theme(plot.caption = element_text(hjust = 0, size=12))+
+  labs(x="",y="",caption="Figure-1:Evolution of components of India's merchandise trade ratio(1980-2018)")
 ##################TABLE-1################
 
 #This table shows the contribution of each of the three
