@@ -4,11 +4,11 @@
 #two measures: UCR and ASG. We begin by extending the
 #UCR dataset.
 
-options(digits=16)
+options(digits=16) 
 #Reading packages
 library(tidyverse)
 library(dplyr)
-library(haven)
+library(haven) 
 library(tidyr)
 library(plm)
 library(varhandle)
